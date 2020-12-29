@@ -6,6 +6,8 @@ import android.text.TextUtils
 import android.view.View
 import com.codermonkeys.trelloclone.R
 import com.codermonkeys.trelloclone.databinding.ActivitySignUpBinding
+import com.codermonkeys.trelloclone.firebase.FirestoreClass
+import com.codermonkeys.trelloclone.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.sdsmdg.tastytoast.TastyToast
 
@@ -40,6 +42,18 @@ class SignUpActivity : BaseActivity() {
         binding.toolbarSignUpActivity.setNavigationOnClickListener { onBackPressed() }
     }
 
+    fun userRegisteredSuccess() {
+        hideProgressDialog()
+        TastyToast.makeText(
+            this,
+            "Registration Successfull",
+            TastyToast.LENGTH_LONG,
+            TastyToast.SUCCESS
+        ).show()
+        FirebaseAuth.getInstance().signOut()
+        finish()
+    }
+
     private fun registerUser() {
         val name = binding.etName.text.toString().trim { it <= ' ' }
         val email = binding.etEmail.text.toString().trim { it <= ' ' }
@@ -53,15 +67,11 @@ class SignUpActivity : BaseActivity() {
                     if (task.isSuccessful) {
                         val firebaseUser = task.result!!.user!!
                         val registeredEmail = firebaseUser.email!!
-                        TastyToast.makeText(
-                            this,
-                            "$name you have registered successfully via $registeredEmail",
-                            TastyToast.LENGTH_LONG,
-                            TastyToast.SUCCESS
-                        ).show()
 
-                        FirebaseAuth.getInstance().signOut()
-                        finish()
+                        val user = User(firebaseUser.uid, name, registeredEmail)
+
+                        FirestoreClass().registerUser(this, user)
+
                     } else {
                         TastyToast.makeText(this, task.exception?.message, TastyToast.LENGTH_SHORT, TastyToast.ERROR).show()
                     }
