@@ -6,6 +6,8 @@ import android.text.TextUtils
 import android.view.View
 import com.codermonkeys.trelloclone.R
 import com.codermonkeys.trelloclone.databinding.ActivitySignInBinding
+import com.codermonkeys.trelloclone.firebase.FirestoreClass
+import com.codermonkeys.trelloclone.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.sdsmdg.tastytoast.TastyToast
 
@@ -42,6 +44,13 @@ class SignInActivity : BaseActivity() {
         binding.toolbarSignInActivity.setNavigationOnClickListener { onBackPressed() }
     }
 
+    fun signInSuccess(user: User) {
+        hideProgressDialog()
+        TastyToast.makeText(this, "Signed In Successfully", TastyToast.LENGTH_SHORT, TastyToast.SUCCESS).show()
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
     private fun signInRegisteredUser() {
         val email = binding.etEmail.text.toString().trim { it <= ' '}
         val password = binding.etPassword.text.toString()
@@ -51,9 +60,7 @@ class SignInActivity : BaseActivity() {
             auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
                 hideProgressDialog()
                 if(task.isSuccessful) {
-                    TastyToast.makeText(this, "Signed In Successfully", TastyToast.LENGTH_SHORT, TastyToast.SUCCESS).show()
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+                    FirestoreClass().loadUserData(this)
                 } else {
                     TastyToast.makeText(this, task.exception?.message, TastyToast.LENGTH_SHORT, TastyToast.ERROR).show()
                 }

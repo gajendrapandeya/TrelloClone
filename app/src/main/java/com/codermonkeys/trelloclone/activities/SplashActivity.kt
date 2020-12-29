@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.codermonkeys.trelloclone.R
+import com.codermonkeys.trelloclone.firebase.FirestoreClass
 
 class SplashActivity : AppCompatActivity() {
 
@@ -18,8 +19,13 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        Handler(Looper.getMainLooper()).postDelayed(Runnable {
-            startActivity(Intent(this, IntroActivity::class.java))
+        Handler(Looper.getMainLooper()).postDelayed({
+            val currentUserID = FirestoreClass().getCurrentUserId()
+            if(currentUserID.isNotEmpty()) {
+                startActivity(Intent(this, MainActivity::class.java))
+            } else {
+                startActivity(Intent(this, IntroActivity::class.java))
+            }
             finish()
         }, TRANSITION_TIME)
     }
