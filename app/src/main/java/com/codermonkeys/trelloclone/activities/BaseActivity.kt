@@ -13,7 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.sdsmdg.tastytoast.TastyToast
 
-class BaseActivity : AppCompatActivity() {
+open class BaseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBaseBinding
     private var doubleBackToExitPressedOnce = false

@@ -2,11 +2,14 @@ package com.codermonkeys.trelloclone.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.View
 import com.codermonkeys.trelloclone.R
 import com.codermonkeys.trelloclone.databinding.ActivitySignUpBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.sdsmdg.tastytoast.TastyToast
 
-class SignUpActivity : AppCompatActivity() {
+class SignUpActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
 
@@ -16,6 +19,10 @@ class SignUpActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupActionBar()
+
+        binding.btnSignUp.setOnClickListener {
+            registerUser()
+        }
     }
 
     override fun onResume() {
@@ -31,5 +38,52 @@ class SignUpActivity : AppCompatActivity() {
             setHomeAsUpIndicator(R.drawable.ic_black_color_back_24dp)
         }
         binding.toolbarSignUpActivity.setNavigationOnClickListener { onBackPressed() }
+    }
+
+    private fun registerUser() {
+        val name = binding.etName.text.toString().trim { it <= ' ' }
+        val email = binding.etEmail.text.toString().trim { it <= ' ' }
+        val password = binding.etPassword.text.toString()
+
+        if (validateForm(name, email, password)) {
+            showProgressDialog(resources.getString(R.string.please_wait))
+            FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    hideProgressDialog()
+                    if (task.isSuccessful) {
+                        val firebaseUser = task.result!!.user!!
+                        val registeredEmail = firebaseUser.email!!
+                        TastyToast.makeText(
+                            this,
+                            "$name you have registered successfully via $registeredEmail",
+                            TastyToast.LENGTH_LONG,
+                            TastyToast.SUCCESS
+                        ).show()
+
+                        FirebaseAuth.getInstance().signOut()
+                        finish()
+                    } else {
+                        TastyToast.makeText(this, task.exception?.message, TastyToast.LENGTH_SHORT, TastyToast.ERROR).show()
+                    }
+                }
+        }
+    }
+
+    private fun validateForm(name: String, email: String, password: String): Boolean {
+        return when {
+            TextUtils.isEmpty(name) -> {
+                showErrorSnackBar("Please Enter a name")
+                false
+            }
+            TextUtils.isEmpty(email) -> {
+                showErrorSnackBar("Please Enter a email")
+                false
+            }
+            TextUtils.isEmpty(password) -> {
+                showErrorSnackBar("Please Enter a password")
+                false
+            }
+            else -> true
+        }
     }
 }
