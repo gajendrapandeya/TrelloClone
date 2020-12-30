@@ -2,11 +2,12 @@ package com.codermonkeys.trelloclone.firebase
 
 import android.app.Activity
 import android.util.Log
-import com.codermonkeys.trelloclone.activities.MainActivity
-import com.codermonkeys.trelloclone.activities.MyProfileActivity
-import com.codermonkeys.trelloclone.activities.SignInActivity
-import com.codermonkeys.trelloclone.activities.SignUpActivity
+import android.widget.Toast
+import com.codermonkeys.trelloclone.activities.*
+import com.codermonkeys.trelloclone.models.Board
 import com.codermonkeys.trelloclone.models.User
+import com.codermonkeys.trelloclone.utils.Constants.ASSIGNED_TO
+import com.codermonkeys.trelloclone.utils.Constants.BOARDS
 import com.codermonkeys.trelloclone.utils.Constants.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -28,7 +29,7 @@ class FirestoreClass {
             }
     }
 
-    fun loadUserData(activity: Activity) {
+    fun loadUserData(activity: Activity, readBoardList: Boolean = false) {
         mFireStore.collection(USERS).document(getCurrentUserId()).get()
             .addOnSuccessListener {
                 val loggedInUser = it.toObject(User::class.java)
@@ -39,7 +40,7 @@ class FirestoreClass {
                         }
 
                         is MainActivity -> {
-                            activity.updateNavigationUserDetails(user)
+                            activity.updateNavigationUserDetails(user, readBoardList)
                         }
 
                         is MyProfileActivity -> {
@@ -71,7 +72,45 @@ class FirestoreClass {
                     TastyToast.LENGTH_SHORT,
                     TastyToast.ERROR
                 ).show()
-        }
+            }
+    }
+
+    fun createBoard(activity: CreateBoardActivity, board: Board) {
+        mFireStore.collection(BOARDS).document().set(board, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.e(TAG, "createBoard: successfyully")
+                TastyToast.makeText(
+                    activity,
+                    "Created Board Successfully",
+                    TastyToast.LENGTH_SHORT,
+                    TastyToast.SUCCESS
+                ).show()
+                activity.boardCreateSuccessfully()
+            }.addOnFailureListener { exception ->
+                activity.hideProgressDialog()
+                Log.e(TAG, "createBoard: ${exception.message}")
+            }
+    }
+
+    fun getBoardList(activity: MainActivity) {
+        mFireStore.collection(BOARDS).whereArrayContains(ASSIGNED_TO, getCurrentUserId()).get()
+            .addOnSuccessListener { document ->
+                Log.e(TAG, "getBoardList: ${document.documents.toString()}")
+
+                val boardList = ArrayList<Board>()
+                for (docs in document.documents) {
+                    val board = docs.toObject(Board::class.java)
+                    board?.let {
+                        it.documentId = docs.id
+                        boardList.add(it)
+                    }
+                }
+
+                activity.populateBoardListToUi(boardList)
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "getBoardList: ${it.message}", )
+            }
     }
 
     fun getCurrentUserId(): String {
