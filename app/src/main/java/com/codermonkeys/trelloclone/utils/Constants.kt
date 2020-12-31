@@ -15,6 +15,8 @@ object Constants {
     const val NAME = "name"
     const val MOBILE = "mobile"
     const val ASSIGNED_TO = "assignedTo"
+    const val DOCUMENT_ID = "documentId"
+    const val TASK_LIST = "taskList"
 
     const val READ_STORAGE_PERMISSION_CODE = 1
     const val PICK_IMAGE_REQUEST_CODE = 2

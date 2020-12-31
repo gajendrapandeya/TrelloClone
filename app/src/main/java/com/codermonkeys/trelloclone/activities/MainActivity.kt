@@ -17,6 +17,7 @@ import com.codermonkeys.trelloclone.databinding.ActivityMainBinding
 import com.codermonkeys.trelloclone.firebase.FirestoreClass
 import com.codermonkeys.trelloclone.models.Board
 import com.codermonkeys.trelloclone.models.User
+import com.codermonkeys.trelloclone.utils.Constants.DOCUMENT_ID
 import com.codermonkeys.trelloclone.utils.Constants.NAME
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -149,6 +150,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
                 val adapter = BoardItemsAdapter(this@MainActivity, boardList)
                 rvBoardsList.adapter = adapter
+
+                adapter.setOnClickListener(object : BoardItemsAdapter.OnClickListener {
+                    override fun onClick(position: Int, model: Board) {
+                        val taskIntent = Intent(this@MainActivity, TaskListActivity::class.java)
+                        taskIntent.putExtra(DOCUMENT_ID, model.documentId)
+                        startActivity(taskIntent)
+                    }
+
+                })
             }
 
         } else {

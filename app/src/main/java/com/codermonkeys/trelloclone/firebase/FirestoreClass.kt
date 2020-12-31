@@ -8,6 +8,7 @@ import com.codermonkeys.trelloclone.models.Board
 import com.codermonkeys.trelloclone.models.User
 import com.codermonkeys.trelloclone.utils.Constants.ASSIGNED_TO
 import com.codermonkeys.trelloclone.utils.Constants.BOARDS
+import com.codermonkeys.trelloclone.utils.Constants.TASK_LIST
 import com.codermonkeys.trelloclone.utils.Constants.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -109,7 +110,35 @@ class FirestoreClass {
                 activity.populateBoardListToUi(boardList)
             }.addOnFailureListener {
                 activity.hideProgressDialog()
-                Log.e(TAG, "getBoardList: ${it.message}", )
+                Log.e(TAG, "getBoardList: ${it.message}")
+            }
+    }
+
+    fun getBoardDetails(activity: TaskListActivity, boardDocumentId: String) {
+        mFireStore.collection(BOARDS).document(boardDocumentId).get()
+            .addOnSuccessListener { document ->
+                Log.e(TAG, "getBoardList: $document")
+                val board = document.toObject(Board::class.java)!!
+                board.documentId = document.id
+                activity.boardDetails(board)
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "getBoardList: ${it.message}")
+            }
+    }
+
+    fun addUpdateTaskList(activity: TaskListActivity, board: Board) {
+        val taskListHashMap = HashMap<String, Any>()
+        taskListHashMap[TASK_LIST] = board.taskList
+
+        mFireStore.collection(BOARDS).document(board.documentId).update(taskListHashMap)
+            .addOnSuccessListener {
+                Log.e(TAG, "addUpdateTaskList: Updated Successfully")
+                activity.addUpdateTaskListSuccess()
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "addUpdateTaskList: ${it.message}" )
+
             }
     }
 
