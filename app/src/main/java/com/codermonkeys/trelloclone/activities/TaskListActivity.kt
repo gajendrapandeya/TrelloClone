@@ -1,14 +1,19 @@
 package com.codermonkeys.trelloclone.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.codermonkeys.trelloclone.R
 import com.codermonkeys.trelloclone.adapters.TaskListItemAdapter
 import com.codermonkeys.trelloclone.databinding.ActivityTaskListBinding
 import com.codermonkeys.trelloclone.firebase.FirestoreClass
 import com.codermonkeys.trelloclone.models.Board
+import com.codermonkeys.trelloclone.models.Card
 import com.codermonkeys.trelloclone.models.Task
+import com.codermonkeys.trelloclone.utils.Constants.BOARD_DETAIL
 import com.codermonkeys.trelloclone.utils.Constants.DOCUMENT_ID
 
 
@@ -34,6 +39,22 @@ class TaskListActivity : BaseActivity() {
 
         showProgressDialog(resources.getString(R.string.please_wait))
         FirestoreClass().getBoardDetails(this, boardDocumentId)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_members, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.action_members -> {
+                val memberIntent = Intent(this, MembersActivity::class.java)
+                memberIntent.putExtra(BOARD_DETAIL, mBoardDetails)
+                startActivity(memberIntent)
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setUpActionBar() {
@@ -95,6 +116,29 @@ class TaskListActivity : BaseActivity() {
     fun deleteTaskList(position: Int) {
         mBoardDetails.taskList.removeAt(position)
         mBoardDetails.taskList.removeAt(mBoardDetails.taskList.size - 1)
+
+        showProgressDialog(resources.getString(R.string.please_wait))
+        FirestoreClass().addUpdateTaskList(this, mBoardDetails)
+    }
+
+    fun addCardToTaskList(position: Int, cardName: String) {
+        mBoardDetails.taskList.removeAt(mBoardDetails.taskList.size - 1)
+
+        val cardAssignedUserList = ArrayList<String>()
+        cardAssignedUserList.add(FirestoreClass().getCurrentUserId())
+
+        val card = Card(cardName, FirestoreClass().getCurrentUserId(), cardAssignedUserList)
+
+        val cardList = mBoardDetails.taskList[position].cards
+        cardList.add(card)
+
+        val task = Task(
+            mBoardDetails.taskList[position].title,
+            mBoardDetails.taskList[position].createdBy,
+            cardList
+        )
+
+        mBoardDetails.taskList[position] = task
 
         showProgressDialog(resources.getString(R.string.please_wait))
         FirestoreClass().addUpdateTaskList(this, mBoardDetails)

@@ -8,6 +8,8 @@ import com.codermonkeys.trelloclone.models.Board
 import com.codermonkeys.trelloclone.models.User
 import com.codermonkeys.trelloclone.utils.Constants.ASSIGNED_TO
 import com.codermonkeys.trelloclone.utils.Constants.BOARDS
+import com.codermonkeys.trelloclone.utils.Constants.EMAIL
+import com.codermonkeys.trelloclone.utils.Constants.ID
 import com.codermonkeys.trelloclone.utils.Constants.TASK_LIST
 import com.codermonkeys.trelloclone.utils.Constants.USERS
 import com.google.firebase.auth.FirebaseAuth
@@ -137,8 +139,57 @@ class FirestoreClass {
                 activity.addUpdateTaskListSuccess()
             }.addOnFailureListener {
                 activity.hideProgressDialog()
-                Log.e(TAG, "addUpdateTaskList: ${it.message}" )
+                Log.e(TAG, "addUpdateTaskList: ${it.message}")
 
+            }
+    }
+
+    fun getAssignedMembersListDetails(activity: MembersActivity, assignedTo: ArrayList<String>) {
+        mFireStore.collection(USERS).whereIn(ID, assignedTo).get()
+            .addOnSuccessListener { document ->
+                Log.e(TAG, "getAssignedMembersListDetails: ${document.documents}")
+
+                val usersList: ArrayList<User> = ArrayList()
+
+                for (docs in document.documents) {
+                    val user = docs.toObject(User::class.java)!!
+                    usersList.add(user)
+                }
+
+                activity.setUpMemberList(usersList)
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "getAssignedMembersListDetails: ${it.message}")
+            }
+    }
+
+    fun getMemberDetails(activity: MembersActivity, email: String) {
+
+        mFireStore.collection(USERS).whereEqualTo(EMAIL, email).get()
+            .addOnSuccessListener { document ->
+                if (document.documents.size > 0) {
+                    val user = document.documents[0].toObject(User::class.java)!!
+                    activity.memberDetails(user)
+                } else {
+                    activity.hideProgressDialog()
+                    activity.showErrorSnackBar("No such member exists")
+                }
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "getMemberDetails: ${it.message}")
+            }
+    }
+
+    fun assignMemberToBoard(activity: MembersActivity, board: Board, user: User) {
+        val assignedToHashMap = HashMap<String, Any>()
+        assignedToHashMap[ASSIGNED_TO] = board.assignedTo
+
+        mFireStore.collection(BOARDS).document(board.documentId).update(assignedToHashMap)
+            .addOnSuccessListener {
+                activity.memberAssignedSuccess(user)
+            }.addOnFailureListener {
+                activity.hideProgressDialog()
+                Log.e(TAG, "assignMemberToBoard: d${it.message}")
             }
     }
 

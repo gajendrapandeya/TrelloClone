@@ -17,6 +17,9 @@ object Constants {
     const val ASSIGNED_TO = "assignedTo"
     const val DOCUMENT_ID = "documentId"
     const val TASK_LIST = "taskList"
+    const val BOARD_DETAIL = "board_detail"
+    const val ID = "id"
+    const val EMAIL = "email"
 
     const val READ_STORAGE_PERMISSION_CODE = 1
     const val PICK_IMAGE_REQUEST_CODE = 2

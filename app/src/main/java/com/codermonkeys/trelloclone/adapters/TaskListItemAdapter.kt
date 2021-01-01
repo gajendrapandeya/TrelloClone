@@ -92,6 +92,37 @@ class TaskListItemAdapter(
             binding.ibDeleteList.setOnClickListener {
                 alertDialogForDeleteList(position, model.title)
             }
+
+            binding.tvAddCard.setOnClickListener {
+                binding.tvAddCard.visibility = View.GONE
+                binding.cvAddCard.visibility = View.VISIBLE
+            }
+
+            binding.ibCloseCardName.setOnClickListener {
+                binding.tvAddCard.visibility = View.VISIBLE
+                binding.cvAddCard.visibility = View.GONE
+            }
+
+            binding.ibDoneCardName.setOnClickListener {
+                val cardName = binding.etCardName.text.toString()
+                Log.i(TAG, "onBindViewHolder: $cardName")
+                if(cardName.isNotEmpty()) {
+                    if(context is TaskListActivity) {
+                        context.addCardToTaskList(position, cardName)
+                    }
+                } else {
+                    TastyToast.makeText(context, "Please enter a card name", TastyToast.LENGTH_SHORT, TastyToast.INFO).show()
+                }
+            }
+
+            val adapter = CardListItemsAdapter(context, model.cards)
+
+            binding.rvCardList.apply {
+                layoutManager = LinearLayoutManager(context)
+                setHasFixedSize(true)
+                this.adapter = adapter
+            }
+
         }
 
     }
